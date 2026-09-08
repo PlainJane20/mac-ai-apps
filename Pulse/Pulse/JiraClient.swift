@@ -88,9 +88,15 @@ struct JiraClient {
         request.setValue(creds.authHeader, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
+        print("📡 Pulse: requesting \(finalURL.absoluteString)")
         let (data, response) = try await URLSession.shared.data(for: request)
-        guard let http = response as? HTTPURLResponse, (200..<300).contains(http.statusCode) else {
-            throw JiraError.badResponse((response as? HTTPURLResponse)?.statusCode ?? -1)
+        let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
+        print("📡 Pulse: Jira responded HTTP \(statusCode), \(data.count) bytes")
+        if let bodyPreview = String(data: data.prefix(500), encoding: .utf8) {
+            print("📡 Pulse: body preview — \(bodyPreview)")
+        }
+        guard (200..<300).contains(statusCode) else {
+            throw JiraError.badResponse(statusCode)
         }
 
         let decoded = try JSONDecoder().decode(SearchResponse.self, from: data)

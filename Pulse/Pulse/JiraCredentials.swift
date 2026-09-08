@@ -10,33 +10,36 @@
 
 import Foundation
 
-struct JiraCredentials {
+struct JiraCredentials: Codable {
     private static let service = "com.navisohi.Pulse.jira"
+    private static let account = "credentials"
 
     var baseURL: String   // e.g. "https://yourcompany.atlassian.net" — no trailing slash needed
     var email: String
     var apiToken: String  // generate at id.atlassian.com/manage-profile/security/api-tokens
 
+    // Stored as ONE Keychain item (JSON-encoded) rather than three separate
+    // ones — each distinct Keychain item can trigger its own "Pulse wants to
+    // access..." permission prompt, so three items meant up to three prompts
+    // per read. One item, one prompt.
     static var current: JiraCredentials? {
         guard
-            let baseURL = KeychainStore.read(service: service, account: "baseURL"),
-            let email = KeychainStore.read(service: service, account: "email"),
-            let apiToken = KeychainStore.read(service: service, account: "apiToken"),
-            !baseURL.isEmpty, !email.isEmpty, !apiToken.isEmpty
+            let json = KeychainStore.read(service: service, account: account),
+            let data = json.data(using: .utf8),
+            let creds = try? JSONDecoder().decode(JiraCredentials.self, from: data),
+            !creds.baseURL.isEmpty, !creds.email.isEmpty, !creds.apiToken.isEmpty
         else { return nil }
-        return JiraCredentials(baseURL: baseURL, email: email, apiToken: apiToken)
+        return creds
     }
 
     func save() {
-        KeychainStore.save(service: Self.service, account: "baseURL", value: baseURL)
-        KeychainStore.save(service: Self.service, account: "email", value: email)
-        KeychainStore.save(service: Self.service, account: "apiToken", value: apiToken)
+        guard let data = try? JSONEncoder().encode(self),
+              let json = String(data: data, encoding: .utf8) else { return }
+        KeychainStore.save(service: Self.service, account: Self.account, value: json)
     }
 
     static func clear() {
-        KeychainStore.delete(service: service, account: "baseURL")
-        KeychainStore.delete(service: service, account: "email")
-        KeychainStore.delete(service: service, account: "apiToken")
+        KeychainStore.delete(service: service, account: account)
     }
 
     var authHeader: String {
