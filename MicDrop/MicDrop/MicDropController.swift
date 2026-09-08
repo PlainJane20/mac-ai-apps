@@ -14,6 +14,7 @@ final class MicDropController: ObservableObject {
     static let shared = MicDropController()
 
     @Published private(set) var isRecording = false
+    @Published private(set) var isStartingUp = false
     @Published private(set) var isProcessing = false
     @Published private(set) var lastError: String?
     @Published private(set) var lastResult: String?
@@ -33,6 +34,18 @@ final class MicDropController: ObservableObject {
     }
 
     private func startRecording() {
+        // Model loading (first run especially) can take a while, and
+        // isRecording only flips true once it's actually started —
+        // without this guard, clicking again during that window fired a
+        // second, third, fourth overlapping startRecording() call, each
+        // trying to independently start the audio engine. That's what
+        // caused the freeze: multiple concurrent AVAudioEngine.start()
+        // calls on the same engine.
+        guard !isStartingUp && !isRecording else {
+            debugLog("🎙️ startRecording() ignored — already starting up or recording")
+            return
+        }
+        isStartingUp = true
         debugLog("🎙️ startRecording() called")
         // Accessibility is only needed for the actual paste-at-cursor step
         // in runDictation() — a voice query like "what's my battery at"
@@ -46,9 +59,11 @@ final class MicDropController: ObservableObject {
             debugLog("🎙️ microphone permission granted: \(granted)")
             guard granted else {
                 self.lastError = DictationError.permissionDenied.localizedDescription
+                self.isStartingUp = false
                 return
             }
             Task { @MainActor in
+                defer { self.isStartingUp = false }
                 do {
                     try await WhisperKitRecorder.shared.start()
                     self.isRecording = true

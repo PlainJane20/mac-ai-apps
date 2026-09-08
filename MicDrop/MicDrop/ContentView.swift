@@ -39,6 +39,12 @@ struct ContentView: View {
                     ProgressView().controlSize(.small)
                     Text("Cleaning up…")
                 }
+            } else if controller.isStartingUp {
+                HStack {
+                    ProgressView().controlSize(.small)
+                    Text("Warming up… (first run downloads a model, can take a minute)")
+                        .fixedSize(horizontal: false, vertical: true)
+                }
             } else {
                 Button(controller.isRecording ? "🎤 Mic Dropped" : "🎤 Drop the Mic") {
                     controller.toggleRecording()

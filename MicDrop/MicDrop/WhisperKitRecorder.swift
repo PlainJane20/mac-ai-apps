@@ -45,14 +45,32 @@ final class WhisperKitRecorder {
     private let audioEngine = AVAudioEngine()
     private var audioFile: AVAudioFile?
     private var recordingURL: URL?
+    /// Guards against overlapping download/load attempts — clicking
+    /// "Drop the Mic" again while the model is still loading previously
+    /// kicked off a second concurrent download that collided with the
+    /// first one's partial files, corrupting both.
+    private var loadingTask: Task<WhisperKit, Error>?
 
     private init() {}
 
     private func ensureModelLoaded() async throws {
-        guard whisperKit == nil else { return }
+        if let whisperKit { _ = whisperKit; return }
+        if let loadingTask {
+            whisperKit = try await loadingTask.value
+            return
+        }
         debugLog("🤖 WhisperKit: loading model (first run downloads it — needs internet)…")
-        whisperKit = try await WhisperKit(model: "base.en")
-        debugLog("🤖 WhisperKit: model loaded")
+        let task = Task { try await WhisperKit(model: "base.en") }
+        loadingTask = task
+        do {
+            let loaded = try await task.value
+            whisperKit = loaded
+            loadingTask = nil
+            debugLog("🤖 WhisperKit: model loaded")
+        } catch {
+            loadingTask = nil
+            throw error
+        }
     }
 
     func start() async throws {
