@@ -6,12 +6,39 @@
 //
 
 import SwiftUI
+import AppKit
 
 @main
 struct LintApp: App {
+    @NSApplicationDelegateAdaptor(AppDelegate.self) private var appDelegate
+
     var body: some Scene {
-        WindowGroup {
+        // MenuBarExtra is SwiftUI's built-in "live in the menu bar" scene —
+        // no manual NSStatusItem setup needed.
+        MenuBarExtra("Lint", systemImage: "wand.and.stars") {
             ContentView()
         }
+        .menuBarExtraStyle(.window) // custom-shaped popover instead of a plain menu list
+    }
+}
+
+/// SwiftUI's App protocol doesn't have a "did finish launching" hook, so we
+/// bring in a small AppKit delegate just for startup wiring: hiding the Dock
+/// icon and registering the global hotkey.
+final class AppDelegate: NSObject, NSApplicationDelegate {
+    func applicationDidFinishLaunching(_ notification: Notification) {
+        // Menu-bar-only app — no Dock icon, no app switcher entry.
+        NSApp.setActivationPolicy(.accessory)
+
+        LintController.shared.requestNotificationPermission()
+
+        HotKeyManager.shared.onHotKey = {
+            Task { await LintController.shared.cleanClipboard() }
+        }
+        HotKeyManager.shared.register()
+    }
+
+    func applicationWillTerminate(_ notification: Notification) {
+        HotKeyManager.shared.unregister()
     }
 }
