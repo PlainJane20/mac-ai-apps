@@ -106,12 +106,15 @@ struct BriefView: View {
                     .font(.callout)
                     .foregroundStyle(.red)
             } else if let brief = controller.brief {
-                ScrollView {
-                    Text(brief)
-                        .font(.callout)
-                        .fixedSize(horizontal: false, vertical: true)
-                }
-                .frame(maxHeight: 220)
+                // No ScrollView here on purpose — inside a self-sizing
+                // MenuBarExtra popover, a ScrollView has no intrinsic size
+                // and silently collapses to zero height without an explicit
+                // minHeight. Briefs are short (2-4 sentences); a plain Text
+                // just grows naturally with its content.
+                Text(brief)
+                    .font(.callout)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .frame(maxWidth: .infinity, alignment: .leading)
             } else {
                 Text("No brief yet — click refresh.")
                     .font(.callout)
