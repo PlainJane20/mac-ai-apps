@@ -51,6 +51,18 @@ final class WhisperKitRecorder {
     /// first one's partial files, corrupting both.
     private var loadingTask: Task<WhisperKit, Error>?
 
+    /// Voice-activity auto-stop: fires once speech has been detected AND
+    /// then ~1.5s of silence follows, so you don't have to remember to
+    /// click "Mic Dropped" yourself. Scribe (the reference app for this
+    /// whole engine swap) does the equivalent via its hold-to-talk model;
+    /// this is the toggle-model's answer to the same problem.
+    var onSilenceDetected: (() -> Void)?
+    private let speechRMSThreshold: Float = 0.02
+    private let silenceTimeout: TimeInterval = 1.5
+    private var hasDetectedSpeech = false
+    private var silenceStartTime: Date?
+    private var hasFiredSilenceCallback = false
+
     private init() {}
 
     private func ensureModelLoaded() async throws {
@@ -86,13 +98,53 @@ final class WhisperKitRecorder {
         let file = try AVAudioFile(forWriting: url, settings: format.settings)
         audioFile = file
 
+        hasDetectedSpeech = false
+        silenceStartTime = nil
+        hasFiredSilenceCallback = false
+
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             try? self?.audioFile?.write(from: buffer)
+            self?.checkForSilence(buffer)
         }
 
         audioEngine.prepare()
         try audioEngine.start()
         isRecording = true
+    }
+
+    private func checkForSilence(_ buffer: AVAudioPCMBuffer) {
+        guard !hasFiredSilenceCallback, let channelData = buffer.floatChannelData?[0] else { return }
+        let frameLength = Int(buffer.frameLength)
+        guard frameLength > 0 else { return }
+
+        var sum: Float = 0
+        for i in 0..<frameLength {
+            sum += channelData[i] * channelData[i]
+        }
+        let rms = sqrt(sum / Float(frameLength))
+
+        if rms > speechRMSThreshold {
+            hasDetectedSpeech = true
+            silenceStartTime = nil
+            return
+        }
+
+        // Only start counting silence AFTER we've heard actual speech —
+        // otherwise this would fire immediately on the ambient-noise-only
+        // gap between clicking the button and starting to talk.
+        guard hasDetectedSpeech else { return }
+
+        if let silenceStartTime {
+            if Date().timeIntervalSince(silenceStartTime) > silenceTimeout {
+                hasFiredSilenceCallback = true
+                debugLog("🎙️ WhisperKit: silence detected, auto-stopping")
+                DispatchQueue.main.async { [weak self] in
+                    self?.onSilenceDetected?()
+                }
+            }
+        } else {
+            silenceStartTime = Date()
+        }
     }
 
     func stop() async -> String {

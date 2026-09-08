@@ -18,7 +18,7 @@ struct ContentView: View {
                 Text("Mic Drop").font(.headline)
             }
 
-            Text("⌘⌥D — dictate, or say a command: calendar, reminders, notes, battery, volume, web search, open an app, music, timers, Slack, Jira")
+            Text("⌘⌥D — dictate, or say a command: calendar, reminders, notes, battery, volume, web search, open an app, music, timers, Slack, Jira. Stops automatically after a pause — no need to click again.")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 

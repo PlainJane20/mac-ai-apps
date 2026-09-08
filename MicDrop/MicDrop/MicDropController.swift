@@ -23,7 +23,12 @@ final class MicDropController: ObservableObject {
     /// popover — nothing here has actually happened yet.
     @Published private(set) var pendingAction: PendingAction?
 
-    private init() {}
+    private init() {
+        WhisperKitRecorder.shared.onSilenceDetected = { [weak self] in
+            guard let self, self.isRecording else { return }
+            Task { await self.stopAndProcess() }
+        }
+    }
 
     func toggleRecording() {
         if isRecording {
