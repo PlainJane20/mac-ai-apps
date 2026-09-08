@@ -32,9 +32,10 @@ final class HotKeyManager {
             eventKind: UInt32(kEventHotKeyPressed)
         )
 
-        InstallEventHandler(
+        let handlerStatus = InstallEventHandler(
             GetApplicationEventTarget(),
             { _, _, userData in
+                debugLog("⌨️ hotkey event received")
                 guard let userData else { return noErr }
                 let manager = Unmanaged<HotKeyManager>.fromOpaque(userData).takeUnretainedValue()
                 DispatchQueue.main.async {
@@ -47,11 +48,12 @@ final class HotKeyManager {
             Unmanaged.passUnretained(self).toOpaque(),
             &eventHandler
         )
+        debugLog("⌨️ InstallEventHandler status = \(handlerStatus)")
 
         let modifiers: UInt32 = UInt32(cmdKey | optionKey)
         let keyCode: UInt32 = UInt32(kVK_ANSI_D)
 
-        RegisterEventHotKey(
+        let registerStatus = RegisterEventHotKey(
             keyCode,
             modifiers,
             hotKeyID,
@@ -59,6 +61,7 @@ final class HotKeyManager {
             0,
             &hotKeyRef
         )
+        debugLog("⌨️ RegisterEventHotKey status = \(registerStatus) (0 = success)")
     }
 
     func unregister() {

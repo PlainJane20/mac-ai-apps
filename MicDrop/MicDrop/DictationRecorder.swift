@@ -58,17 +58,22 @@ final class DictationRecorder {
         guard let recognizer, recognizer.isAvailable else {
             throw DictationError.recognizerUnavailable
         }
+        debugLog("🗣️ supportsOnDeviceRecognition = \(recognizer.supportsOnDeviceRecognition)")
 
         latestTranscript = ""
         let request = SFSpeechAudioBufferRecognitionRequest()
         request.shouldReportPartialResults = true
         // Keep this entirely on-device — the whole point of this app is
-        // that dictation never leaves the machine.
+        // that dictation never leaves the machine. If the OS doesn't
+        // actually support on-device recognition for this locale/hardware,
+        // this would otherwise fail silently — we log it above instead of
+        // guessing.
         request.requiresOnDeviceRecognition = true
         self.request = request
 
         let inputNode = audioEngine.inputNode
         let format = inputNode.outputFormat(forBus: 0)
+        debugLog("🗣️ input format: \(format)")
         inputNode.installTap(onBus: 0, bufferSize: 1024, format: format) { [weak self] buffer, _ in
             self?.request?.append(buffer)
         }
@@ -79,8 +84,12 @@ final class DictationRecorder {
 
         task = recognizer.recognitionTask(with: request) { [weak self] result, error in
             guard let self else { return }
+            if let error {
+                debugLog("🗣️ recognition task error: \(error)")
+            }
             if let result {
                 self.latestTranscript = result.bestTranscription.formattedString
+                debugLog("🗣️ partial result: \"\(self.latestTranscript)\" isFinal=\(result.isFinal)")
             }
         }
     }

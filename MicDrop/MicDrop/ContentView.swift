@@ -40,11 +40,11 @@ struct ContentView: View {
                     Text("Cleaning up…")
                 }
             } else {
-                Button(controller.isRecording ? "Stop Dictation" : "Start Dictation") {
+                Button(controller.isRecording ? "🎤 Mic Dropped" : "🎤 Drop the Mic") {
                     controller.toggleRecording()
                 }
                 if controller.isRecording {
-                    Label("Recording…", systemImage: "waveform")
+                    Label("Listening…", systemImage: "waveform")
                         .font(.caption)
                         .foregroundStyle(.red)
                 }

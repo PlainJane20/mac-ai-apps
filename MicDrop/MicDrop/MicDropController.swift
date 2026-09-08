@@ -32,12 +32,14 @@ final class MicDropController: ObservableObject {
     }
 
     private func startRecording() {
+        debugLog("🎙️ startRecording() called")
         // Accessibility is only needed for the actual paste-at-cursor step
         // in runDictation() — a voice query like "what's my battery at"
         // never touches the clipboard, so it shouldn't be blocked by a
         // permission it doesn't need. Checked later, only on that path.
         DictationRecorder.requestPermissions { [weak self] granted in
             guard let self else { return }
+            debugLog("🎙️ permissions granted: \(granted)")
             guard granted else {
                 self.lastError = DictationError.permissionDenied.localizedDescription
                 return
@@ -46,15 +48,21 @@ final class MicDropController: ObservableObject {
                 try DictationRecorder.shared.start()
                 self.isRecording = true
                 self.lastError = nil
+                NSSound(named: "Tink")?.play()
+                debugLog("🎙️ recording started successfully")
             } catch {
                 self.lastError = error.localizedDescription
+                debugLog("🎙️ recording start FAILED: \(error)")
             }
         }
     }
 
     private func stopAndProcess() async {
         isRecording = false
+        NSSound(named: "Pop")?.play()
+        debugLog("🎙️ stopAndProcess() called")
         let transcript = await DictationRecorder.shared.stop()
+        debugLog("🎙️ transcript: \"\(transcript)\"")
 
         guard !transcript.isEmpty else {
             lastError = DictationError.emptyTranscript.localizedDescription
