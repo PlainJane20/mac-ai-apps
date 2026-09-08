@@ -46,6 +46,15 @@ struct JiraCredentials {
     }
 
     var normalizedBaseURL: String {
-        baseURL.hasSuffix("/") ? String(baseURL.dropLast()) : baseURL
+        var url = baseURL.trimmingCharacters(in: .whitespacesAndNewlines)
+        // A missing scheme is an easy typo (e.g. pasting just
+        // "yourcompany.atlassian.net") — default to https rather than fail.
+        if !url.lowercased().hasPrefix("http://") && !url.lowercased().hasPrefix("https://") {
+            url = "https://" + url
+        }
+        while url.hasSuffix("/") {
+            url = String(url.dropLast())
+        }
+        return url
     }
 }

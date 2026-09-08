@@ -12,12 +12,15 @@ import Foundation
 
 enum JiraError: Error, LocalizedError {
     case notConfigured
+    case invalidBaseURL(String)
     case badResponse(Int)
 
     var errorDescription: String? {
         switch self {
         case .notConfigured:
             return "Jira isn't set up yet — add your credentials first."
+        case .invalidBaseURL(let url):
+            return "\"\(url)\" isn't a valid URL — check for typos (e.g. https://yourcompany.atlassian.net)."
         case .badResponse(let code):
             return "Jira returned HTTP \(code)."
         }
@@ -67,7 +70,10 @@ struct JiraClient {
         startAt: Int,
         maxResults: Int
     ) async throws -> (issues: [JiraIssue], total: Int) {
-        var components = URLComponents(string: creds.normalizedBaseURL + "/rest/api/3/search/jql")!
+        let base = creds.normalizedBaseURL
+        guard var components = URLComponents(string: base + "/rest/api/3/search/jql") else {
+            throw JiraError.invalidBaseURL(base)
+        }
         components.queryItems = [
             URLQueryItem(name: "jql", value: jql),
             URLQueryItem(name: "fields", value: "summary,status,issuetype,project,priority"),
@@ -75,7 +81,10 @@ struct JiraClient {
             URLQueryItem(name: "startAt", value: String(startAt)),
         ]
 
-        var request = URLRequest(url: components.url!)
+        guard let finalURL = components.url else {
+            throw JiraError.invalidBaseURL(base)
+        }
+        var request = URLRequest(url: finalURL)
         request.setValue(creds.authHeader, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
