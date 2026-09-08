@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title description">
+  <title id="title">Lint</title>
+  <desc id="description">Native menu bar clipboard cleaner, powered by a local LLM.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1a0e2e"/>
+      <stop offset="0.56" stop-color="#3b1f6b"/>
+      <stop offset="1" stop-color="#8b5cf6" stop-opacity=".72"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#f0abfc" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#f0abfc" stop-opacity="0"/>
+    </radialGradient>
+    <filter id="shadow" x="-25%" y="-25%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="#0a0414" flood-opacity=".4"/>
+    </filter>
+  </defs>
+  <rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+  <circle cx="1035" cy="55" r="230" fill="url(#glow)"/>
+  <g opacity=".22" fill="#f0abfc" stroke="none">
+    <circle cx="800" cy="70" r="4"/>
+    <circle cx="860" cy="140" r="6"/>
+    <circle cx="940" cy="60" r="3"/>
+    <circle cx="1000" cy="150" r="5"/>
+    <circle cx="1080" cy="90" r="4"/>
+    <circle cx="1120" cy="200" r="6"/>
+    <circle cx="950" cy="220" r="3"/>
+    <circle cx="1150" cy="120" r="4"/>
+  </g>
+  <g transform="translate(74 68)" filter="url(#shadow)">
+    <rect width="88" height="88" rx="22" fill="#2a1650" stroke="#f0abfc" stroke-opacity=".58"/>
+    <g fill="none" stroke="#f0abfc" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M22 66l32-32"/>
+      <path d="M54 34l6-6"/>
+      <path d="M64 20l4 4M64 28l0-8M60 24l8 0" stroke-width="2.4"/>
+      <path d="M30 44l4 4M30 52l0-8M26 48l8 0" stroke-width="2.4"/>
+      <path d="M50 62l3 3M50 68l0-6M47 65l6 0" stroke-width="2"/>
+    </g>
+  </g>
+  <text x="190" y="112" fill="#ffffff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="50" font-weight="750" letter-spacing="-1">Lint</text>
+  <text x="192" y="153" fill="#f0abfc" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2.5">NATIVE MENU BAR CLIPBOARD CLEANER</text>
+  <text x="75" y="225" fill="#ece3f7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Messy notes and dictated text, cleaned up right where you copied them.</text>
+  <text x="75" y="258" fill="#ece3f7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Runs entirely on-device — nothing leaves your Mac.</text>
+  <g transform="translate(775 168)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">
+    <g transform="translate(0 0)"><rect width="128" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="64" y="26" text-anchor="middle" fill="#f6eefc">Ollama · Local LLM</text></g>
+    <g transform="translate(138 0)"><rect width="118" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="59" y="26" text-anchor="middle" fill="#f6eefc">SwiftUI Menu Bar</text></g>
+    <g transform="translate(266 0)"><rect width="108" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="54" y="26" text-anchor="middle" fill="#f6eefc">Global Hotkey</text></g>
+  </g>
+</svg>
