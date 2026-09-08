@@ -23,20 +23,24 @@ final class LintController: ObservableObject {
 
         guard let text = NSPasteboard.general.string(forType: .string),
               !text.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty else {
+            print("🪄 Lint: clipboard empty or not text — aborting")
             notify(title: "Lint", body: "Clipboard is empty or isn't text.")
             return
         }
 
+        print("🪄 Lint: cleaning \(text.count) characters…")
         isCleaning = true
         defer { isCleaning = false }
 
         do {
             let cleaned = try await OllamaClient.cleanText(text)
+            print("🪄 Lint: success — \(cleaned.count) characters back")
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(cleaned, forType: .string)
             lastResult = cleaned
             notify(title: "Lint ✨", body: "Clipboard cleaned — paste away.")
         } catch {
+            print("🪄 Lint: FAILED — \(error)")
             lastResult = nil
             notify(title: "Lint — failed", body: error.localizedDescription)
         }

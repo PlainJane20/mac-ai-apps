@@ -38,9 +38,10 @@ final class HotKeyManager {
 
         // Install a handler that fires whenever ANY registered hotkey is pressed.
         // We only register one, so we know it's ours.
-        InstallEventHandler(
+        let handlerStatus = InstallEventHandler(
             GetApplicationEventTarget(),
             { _, _, userData in
+                print("🪄 Lint: hotkey event received")
                 guard let userData else { return noErr }
                 let manager = Unmanaged<HotKeyManager>.fromOpaque(userData).takeUnretainedValue()
                 DispatchQueue.main.async {
@@ -53,11 +54,12 @@ final class HotKeyManager {
             Unmanaged.passUnretained(self).toOpaque(),
             &eventHandler
         )
+        print("🪄 Lint: InstallEventHandler status = \(handlerStatus)")
 
         let modifiers: UInt32 = UInt32(cmdKey | shiftKey)
         let keyCode: UInt32 = UInt32(kVK_ANSI_V)
 
-        RegisterEventHotKey(
+        let registerStatus = RegisterEventHotKey(
             keyCode,
             modifiers,
             hotKeyID,
@@ -65,6 +67,7 @@ final class HotKeyManager {
             0,
             &hotKeyRef
         )
+        print("🪄 Lint: RegisterEventHotKey status = \(registerStatus) (0 = success)")
     }
 
     func unregister() {
