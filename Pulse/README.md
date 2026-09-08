@@ -8,7 +8,7 @@
 
 ### A native menu bar Jira sprint brief, powered by a local LLM
 
-Your tickets, any active sprint, any project — summarized where you can see it at a glance.
+Your tickets, any active sprint, any project — summarized, flagged, and sorted where you can see it at a glance.
 
 [![Swift 6](https://img.shields.io/badge/swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org/)
 [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0A84FF)]()
@@ -23,9 +23,9 @@ Your tickets, any active sprint, any project — summarized where you can see it
 
 <div align="center">
 
-| Any Jira instance | Local-only | Standalone | Runs at login |
+| Any Jira instance | Local-only | Deterministic-first | Runs at login |
 |:---:|:---:|:---:|:---:|
-| `currentUser()` + `openSprints()` — no board ID, no company baked in | Ollama on-device — real work data, never a cloud call | No Xcode/debugger dependency | Registered as a macOS Login Item |
+| `currentUser()` + `openSprints()` — no board ID, no company baked in | Ollama on-device — real work data, never a cloud call | Counts, staleness, sorting computed in Swift, not asked of the LLM | Standalone + daily 9am digest |
 
 </div>
 
@@ -47,37 +47,57 @@ public-eventually; every example below is fabricated.
 > pattern proven out in [Lint](../Lint) — same `MenuBarExtra` scaffold, same
 > notification-sound delegate fix, same "local LLM only" stance on real data.
 
+## What it does
+
+- **Sprint countdown** — shows the actual Jira sprint name and days remaining
+  (e.g. "ends in 3d"), pulled from Jira's dynamically-numbered sprint field
+- **Staleness flags** — anything "In Progress" with no update in 3+ days gets
+  flagged, deterministically, not by asking an LLM to guess
+- **Overdue detection** — due date vs. today, flagged the same way
+- **Priority-first sorting** — each project's list sorts overdue, then stale,
+  then by priority, instead of raw API order
+- **Per-assignee breakdown** — ticket counts per teammate, useful once you
+  point it at a whole project's sprint, not just your own tickets
+- **"Copy for Standup"** — formats today's data into a ready-to-paste
+  What I did / Today / Blockers update
+- **Daily digest** — a background check fires a notification once per day at
+  9am local, so it's a habit-former, not just something you have to remember
+  to open
+
 ## At a glance
 
 | | |
 |---|---|
-| **Problem** | Checking Jira's web UI every morning for what's actually on your plate is slow and easy to skip |
-| **Approach** | One JQL query (`assignee = currentUser() AND sprint in openSprints()`) pulls your tickets from any project; a local model turns the raw list into a short brief |
-| **Proof** | Verified against a real Jira Cloud instance, including the empty-sprint edge case |
-| **Output** | A 2-4 sentence brief in the menu bar, refreshed on open or on demand |
+| **Problem** | Checking Jira's web UI every morning for what's actually on your plate — and what's quietly stalling — is slow and easy to skip |
+| **Approach** | One JQL query pulls tickets from any project; deterministic Swift computes counts/staleness/sorting; a local model adds a short narrative on top, but only when it's actually reliable |
+| **Proof** | Verified against a real Jira Cloud instance across a 20+ ticket real workload, not just the empty-sprint edge case |
+| **Output** | Status counts, flagged tickets, a short brief, and a one-click standup export, all refreshed on open, on demand, or daily at 9am |
 
 ## Competencies demonstrated
 
 | Competency | Observable evidence |
 |---|---|
-| API integration | Jira REST v3 search, paginated correctly against the API's actual (not assumed) response shape |
-| Local LLM integration | Ollama `/api/chat` summarization, same role-based prompt pattern as Lint |
-| Debugging under ambiguity | Diagnosed a silent decode failure by adding request/response logging and reading the raw JSON body, rather than guessing |
+| API integration | Jira REST v3 search, paginated correctly against the API's actual (not assumed) response shape; dynamic custom-field discovery for sprint data |
+| Local LLM integration, with real skepticism | Ollama `/api/chat` summarization whose output is validated against ground truth (correct count present, no redundant ticket-key dump) before ever being shown — confirmed necessary after 4 distinct failure modes across 2 models on real data |
+| Deterministic-first design | Status counts, staleness, overdue, sorting, and assignee breakdown are all plain Swift computation — the LLM's job is deliberately minimized to what it's actually reliable at |
+| Debugging under ambiguity | Diagnosed a silent decode failure via request/response logging; diagnosed an AI reliability failure via a synthetic side-by-side model comparison before touching app code |
 | macOS platform depth | Window-state restoration, Keychain ACL/code-signing behavior, and SwiftUI layout sizing — three distinct root causes found and fixed |
 | Security-conscious design | Generic-by-default query (no hardcoded company data), credentials never committed, explicit rule separating "the tool" from "my usage of it" |
-| Pragmatic engineering | Recognized when a "more correct" approach (Keychain) was actively harmful given real constraints (unstable dev signing), and substituted a simpler one rather than fighting it |
 
 ## Real example
 
 *(Fabricated data — no real ticket content, project names, or people appear here or anywhere else in this repo.)*
 
-**Brief, non-empty sprint:**
-> You have 3 tickets in active sprints. `PROJ-101` (blocked) needs review before anything else can move. The other two — `PROJ-104` and `PROJ-108` — are in progress with no flags.
+**Brief, healthy sprint:**
+> 3 tickets in active sprints. Nothing overdue or stale — steady state.
 
-**Brief, nothing assigned:**
-> No tickets are currently assigned in an active sprint.
+**Brief, needs attention:**
+> 2 ticket(s) overdue, 5 gone 3+ days without an update — worth a check-in.
 
-## Four real bugs found building this
+**By assignee** (shown once a watched project pulls in more than just your own tickets):
+> Jane Doe — 6 · John Smith — 4 · Unassigned — 1
+
+## Five real bugs found building this
 
 1. **A crash on every relaunch, from a subsystem this app doesn't even use.**
    Menu-bar-only apps have no real windows, but macOS still tried to *restore*
@@ -99,11 +119,13 @@ public-eventually; every example below is fabricated.
    matching the model to the actual response shape rather than an assumed one.
 
 3. **A view that rendered nothing, with no error and no crash.** The brief
-   text area was consistently blank even on a successful fetch. Cause: a
-   `ScrollView` inside a self-sizing menu-bar popover has no intrinsic content
-   size and silently collapses to zero height without an explicit `minHeight`.
-   Removed the `ScrollView` — the content is short enough that a plain `Text`
-   was the right call anyway.
+   text area (and later, a group header) was consistently blank or truncated
+   even on a successful fetch. Cause: a `ScrollView` inside a self-sizing
+   menu-bar popover has no intrinsic content size and silently collapses to
+   zero height without an explicit `minHeight`; separately, a long project
+   name ate the horizontal space a sprint countdown needed on the same line.
+   Fixed by dropping the `ScrollView` in favor of plain, growing `Text`, and
+   splitting the header into two lines so neither element starves the other.
 
 4. **"Always Allow" that never actually stuck.** Every rebuild re-prompted for
    Keychain access, even after repeatedly granting it. Root cause: with no
@@ -114,18 +136,38 @@ public-eventually; every example below is fabricated.
    a local file outside the Keychain entirely (still never committed to git),
    eliminating the friction at its source.
 
+5. **An LLM that failed the same task four different ways on real data,
+   despite passing synthetic tests.** Once real usage crossed ~20 tickets,
+   the model hallucinated a claim on every single item, then on a later run
+   flatly denied any tickets existed despite receiving them in the prompt,
+   then produced a bare list with no synthesis, then — even when otherwise
+   coherent — redundantly enumerated ticket keys the UI already showed
+   elsewhere. A synthetic side-by-side test (fabricated tickets, not real
+   ones) confirmed a larger local model handled the same scale correctly,
+   but the deeper fix was architectural, not just a bigger model: validate
+   the LLM's output against ground truth (does it mention the actual count?
+   does it duplicate ticket keys we can check for directly?) and fall back
+   to a deterministic sentence — one that adds real signal instead of
+   repeating numbers already visible elsewhere in the UI — whenever it fails
+   that check.
+
 ## Architecture
 
 ```mermaid
 flowchart LR
-    Open(["Menu bar click<br/>or 15min-stale auto-refresh"]) --> Controller["PulseController.swift"]
+    Open(["Menu bar click, refresh,<br/>or daily 9am digest timer"]) --> Controller["PulseController.swift"]
     Controller --> Jira["JiraClient.swift<br/>currentUser() + openSprints()"]
-    Jira -->|paginated by isLast| Controller
+    Jira -->|paginated by isLast<br/>+ sprint field discovery| Controller
+    Controller --> Compute["Deterministic Swift:<br/>breakdown, staleness,<br/>overdue, sort, assignees"]
     Controller --> Ollama["OllamaClient.swift<br/>POST /api/chat"]
-    Ollama -->|"system: instructions<br/>user: ticket list"| Model[("llama3.2, local")]
-    Model --> Controller
-    Controller --> UI["Menu bar popover<br/>brief + refresh"]
-    Controller --> Notify["UNUserNotificationCenter<br/>+ NSSound"]
+    Ollama -->|"system: instructions<br/>user: ticket list"| Model[("qwen2.5-coder:7b, local")]
+    Model --> Validate["Validate vs. ground truth:<br/>count present? no ticket-key dump?"]
+    Validate -->|pass| Brief["LLM narrative"]
+    Validate -->|fail| Fallback["Deterministic sentence"]
+    Compute --> UI["Menu bar popover"]
+    Brief --> UI
+    Fallback --> UI
+    UI --> Notify["UNUserNotificationCenter<br/>+ NSSound"]
 ```
 
 ## Setup
@@ -134,7 +176,7 @@ Requires [Ollama](https://ollama.com) running locally with a model pulled:
 
 ```bash
 brew install ollama
-ollama pull llama3.2
+ollama pull qwen2.5-coder:7b
 ```
 
 Open `Pulse.xcodeproj` in Xcode and run, or build a standalone copy:
@@ -145,12 +187,15 @@ xcodebuild -project Pulse.xcodeproj -scheme Pulse -configuration Release build
 
 On first launch, enter your Jira Cloud URL, email, and an
 [API token](https://id.atlassian.com/manage-profile/security/api-tokens) —
-stored locally, never in this repo.
+stored locally, never in this repo. Optionally also enter a project key to
+watch that project's whole active sprint, not just your own tickets.
 
 ## Usage
 
-Click the waveform icon in the menu bar for your current brief, or the
-refresh icon to pull the latest. That's the whole interface.
+1. Click the waveform menu bar icon for your current brief, or the refresh icon to pull the latest
+2. Click any ticket row to open it directly in Jira
+3. Click **Copy for Standup** to get a ready-to-paste status update on your clipboard
+4. It also checks in on its own once a day at 9am — no action needed
 
 ## Contact
 
