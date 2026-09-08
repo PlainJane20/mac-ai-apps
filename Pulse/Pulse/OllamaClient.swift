@@ -24,20 +24,28 @@ enum OllamaError: Error, LocalizedError {
 }
 
 struct OllamaClient {
-    static let defaultModel = "llama3.2:latest"
+    // llama3.2:latest (3B) proved unreliable at this task's real scale —
+    // confirmed hallucinating a claim on every ticket in one run, then
+    // degenerating to a bare list with no synthesis at all on another,
+    // both against the same 21-ticket real request. qwen2.5-coder:7b
+    // handled equivalent synthetic 20-ticket tests correctly both when
+    // nothing needed flagging and when exactly 2 of 20 did — accurate
+    // count, no hallucination, correct selective flagging both times.
+    static let defaultModel = "qwen2.5-coder:7b"
 
     private static let systemPrompt = """
     You are a concise status-summary assistant for a technical program manager. \
     You'll receive a list of Jira tickets currently assigned to the user, across \
-    whatever active sprints they're in, one per line. Write a short daily brief: \
-    2-4 plain-English sentences, plus bullet points ONLY for tickets that are \
-    blocked, high priority, or otherwise worth flagging first — omit bullet points \
-    entirely if there's nothing that needs flagging, never emit empty bullets. If \
-    there's more than one project represented, group by project. Never invent \
+    whatever active sprints they're in, one per line. Write ONLY a short narrative \
+    brief: 2-3 plain-English sentences, no more. Do NOT list, enumerate, or bullet \
+    individual ticket keys or titles under any circumstance — the user already sees \
+    the full ticket list elsewhere in the app, so repeating it here is pure noise. \
+    Speak only in aggregate: counts, categories, and anything genuinely blocked or \
+    high priority described in prose, never as a per-ticket list. Never invent \
     ticket details, counts, or names beyond what's given — if the list is empty, \
     respond with a single plain sentence saying there's nothing currently assigned \
-    in an active sprint, with no bullet points at all. Respond with ONLY the brief \
-    itself — no preamble, no restating these instructions.
+    in an active sprint. Respond with ONLY the brief itself — no preamble, no \
+    restating these instructions, no markdown formatting.
     """
 
     private struct ChatMessage: Encodable {

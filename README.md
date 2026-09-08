@@ -10,11 +10,12 @@ the native-app + local-AI development process end to end.
 2. **Pulse** — menu-bar Jira sprint brief, summarized via a local LLM. Queries
    `assignee = currentUser() AND sprint in openSprints()` — no board ID, project key,
    or company domain hardcoded anywhere in source, so it works against any Jira
-   instance, not just one company's. Credentials live in macOS Keychain, entered
-   once at first launch, never in a file. **Hard rule: no real employer ticket data,
-   screenshots, or API responses ever get committed** — README/sample output use only
-   fabricated examples (fake ticket IDs like `PROJ-123`, fake names). The tool is
-   generic; the *usage* isn't shareable, and those stay separate.
+   instance, not just one company's. Credentials live in a local file entered once
+   at first launch, outside the repo entirely, never committed. **Hard rule: no real
+   employer name, ticket data, screenshots, or API responses ever get committed** —
+   README/sample output use only fabricated examples (fake ticket IDs like `PROJ-123`,
+   fake names). The tool is generic; the *usage* isn't shareable, and those stay
+   completely separate.
 3. **Dictation tool** — global hotkey → on-device speech-to-text (Whisper) → local LLM
    cleanup pass → inserts text at cursor.
 

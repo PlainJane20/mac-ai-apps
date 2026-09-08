@@ -31,6 +31,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         PulseController.shared.requestNotificationPermission()
 
         PulseController.shared.refreshIfStale()
+        PulseController.shared.startDailyDigestTimer()
     }
 
     // Menu-bar-only apps have no real windows, but macOS still tries to

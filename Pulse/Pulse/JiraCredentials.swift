@@ -11,7 +11,7 @@
 //  are tied to that signature — so during active development, "Always
 //  Allow" never actually sticks across rebuilds, prompting constantly.
 //  This file never touches git (it's outside the repo entirely, same
-//  spirit as a local .env file) and is chmod 600. Worth revisiting
+//  spirit as a gitignored .env file) and is chmod 600. Worth revisiting
 //  Keychain once the app has a stable signing identity and isn't being
 //  rebuilt every few minutes.
 //
@@ -22,6 +22,12 @@ struct JiraCredentials: Codable {
     var baseURL: String   // e.g. "https://yourcompany.atlassian.net" — no trailing slash needed
     var email: String
     var apiToken: String  // generate at id.atlassian.com/manage-profile/security/api-tokens
+
+    /// Optional: also show every ticket in this project's active sprint,
+    /// not just your own — e.g. "PROJ". This is a per-user local setting,
+    /// never hardcoded in source, so the tool stays generic regardless of
+    /// what any individual user configures for themselves.
+    var watchedProjectKey: String?
 
     private static var fileURL: URL {
         let dir = FileManager.default
