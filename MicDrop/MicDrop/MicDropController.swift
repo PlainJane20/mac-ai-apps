@@ -32,12 +32,10 @@ final class MicDropController: ObservableObject {
     }
 
     private func startRecording() {
-        guard PasteInserter.hasAccessibilityPermission else {
-            lastError = "Grant Accessibility access first — see the menu."
-            PasteInserter.requestAccessibilityPermission()
-            return
-        }
-
+        // Accessibility is only needed for the actual paste-at-cursor step
+        // in runDictation() — a voice query like "what's my battery at"
+        // never touches the clipboard, so it shouldn't be blocked by a
+        // permission it doesn't need. Checked later, only on that path.
         DictationRecorder.requestPermissions { [weak self] granted in
             guard let self else { return }
             guard granted else {
@@ -60,7 +58,7 @@ final class MicDropController: ObservableObject {
 
         guard !transcript.isEmpty else {
             lastError = DictationError.emptyTranscript.localizedDescription
-            notify(title: "Mic Drop", body: "Didn't catch any speech.")
+            notify(title: "Miko", body: "Didn't catch any speech.")
             return
         }
 
@@ -79,16 +77,21 @@ final class MicDropController: ObservableObject {
     }
 
     private func runDictation(_ transcript: String) async {
+        guard PasteInserter.hasAccessibilityPermission else {
+            lastError = "Grant Accessibility access first to paste dictated text — see the menu."
+            PasteInserter.requestAccessibilityPermission()
+            return
+        }
         do {
             let cleaned = try await OllamaClient.cleanText(transcript)
             PasteInserter.insertText(cleaned)
             lastResult = cleaned
             NSSound(named: "Glass")?.play()
-            notify(title: "Mic Drop ✨", body: "Inserted — \(cleaned.count) characters.")
+            notify(title: "Miko ✨", body: "Inserted — \(cleaned.count) characters.")
         } catch {
             lastError = error.localizedDescription
             lastResult = nil
-            notify(title: "Mic Drop — failed", body: error.localizedDescription)
+            notify(title: "Miko — failed", body: error.localizedDescription)
         }
     }
 
@@ -96,7 +99,7 @@ final class MicDropController: ObservableObject {
         switch await CommandRouter.run(command) {
         case .needsConfirmation(let action):
             pendingAction = action
-            notify(title: "Mic Drop — confirm?", body: action.description)
+            notify(title: "Miko — confirm?", body: action.description)
         case .completed(let result):
             present(result)
         }
@@ -109,10 +112,10 @@ final class MicDropController: ObservableObject {
             // Query results get spoken AND shown as a notification — you
             // might be looking at your screen or not.
             SpeechOutput.speak(result.spokenText)
-            notify(title: "Mic Drop", body: result.spokenText)
+            notify(title: "Miko", body: result.spokenText)
         } else {
             NSSound(named: "Glass")?.play()
-            notify(title: "Mic Drop ✅", body: result.spokenText)
+            notify(title: "Miko ✅", body: result.spokenText)
         }
     }
 
@@ -127,7 +130,7 @@ final class MicDropController: ObservableObject {
 
     func cancelPendingAction() {
         pendingAction = nil
-        notify(title: "Mic Drop", body: "Cancelled.")
+        notify(title: "Miko", body: "Cancelled.")
     }
 
     func requestNotificationPermission() {

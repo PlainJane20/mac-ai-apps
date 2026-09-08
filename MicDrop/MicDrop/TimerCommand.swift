@@ -18,7 +18,7 @@ struct TimerCommand {
 
         DispatchQueue.main.asyncAfter(deadline: .now() + seconds) {
             let content = UNMutableNotificationContent()
-            content.title = "MicDrop ⏰"
+            content.title = "Miko ⏰"
             content.body = "Timer's up — \(text)."
             content.sound = .default
             UNUserNotificationCenter.current().add(
