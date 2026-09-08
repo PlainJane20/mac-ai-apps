@@ -18,7 +18,7 @@ struct ContentView: View {
                 Text("Mic Drop").font(.headline)
             }
 
-            Text("⌘⌥D toggles dictation anywhere")
+            Text("⌘⌥D — dictate, or say a command: calendar, reminders, notes, battery, volume, web search, open an app, music, timers, Slack, Jira")
                 .font(.caption)
                 .foregroundStyle(.secondary)
 
@@ -54,6 +54,17 @@ struct ContentView: View {
                 Text(error)
                     .font(.caption)
                     .foregroundStyle(.red)
+            }
+
+            if let pending = controller.pendingAction {
+                Divider()
+                Text(pending.description)
+                    .font(.caption)
+                    .fixedSize(horizontal: false, vertical: true)
+                HStack {
+                    Button("Confirm") { controller.confirmPendingAction() }
+                    Button("Cancel") { controller.cancelPendingAction() }
+                }
             }
 
             Divider()

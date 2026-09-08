@@ -256,6 +256,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "MicDrop reads your calendar to answer voice questions about your schedule.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "MicDrop creates reminders from voice commands.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MicDrop records your voice to transcribe it into text, entirely on-device.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MicDrop uses on-device speech recognition to turn your dictation into text.";
 				LD_RUNPATH_SEARCH_PATHS = (
@@ -284,6 +286,8 @@
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				INFOPLIST_KEY_NSCalendarsFullAccessUsageDescription = "MicDrop reads your calendar to answer voice questions about your schedule.";
+				INFOPLIST_KEY_NSRemindersFullAccessUsageDescription = "MicDrop creates reminders from voice commands.";
 				INFOPLIST_KEY_NSMicrophoneUsageDescription = "MicDrop records your voice to transcribe it into text, entirely on-device.";
 				INFOPLIST_KEY_NSSpeechRecognitionUsageDescription = "MicDrop uses on-device speech recognition to turn your dictation into text.";
 				LD_RUNPATH_SEARCH_PATHS = (
