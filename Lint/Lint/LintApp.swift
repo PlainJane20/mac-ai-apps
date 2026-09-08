@@ -47,6 +47,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
     func applicationWillTerminate(_ notification: Notification) {
         HotKeyManager.shared.unregister()
     }
+
+    // Menu-bar-only apps have no real windows, but macOS still tries to
+    // persist/restore "window state" by default — which can crash on
+    // relaunch (NSPersistentUIRestorer → AppWindowsController.restoreWindow)
+    // once the saved state no longer matches the app's actual structure.
+    // Opting out entirely avoids that whole failure path.
+    func applicationSupportsSecureRestorableState(_ app: NSApplication) -> Bool {
+        false
+    }
 }
 
 extension AppDelegate: UNUserNotificationCenterDelegate {
