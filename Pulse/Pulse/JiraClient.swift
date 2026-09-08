@@ -52,14 +52,15 @@ struct JiraClient {
         var startAt = 0
         let pageSize = 100
 
-        // Same pagination pattern as sprint_summary.py's jql_search: keep
-        // paging with startAt until we've collected everything the search
-        // reports as `total`.
+        // sprint_summary.py's pagination relies on a `total` field, but this
+        // endpoint's actual response — confirmed by logging the raw body —
+        // is {"issues":[...],"isLast":true/false}, no `total` at all. Page
+        // until Jira itself says isLast, not until some byte count matches.
         while true {
-            let (issues, total) = try await fetchPage(creds: creds, startAt: startAt, maxResults: pageSize)
+            let (issues, isLast) = try await fetchPage(creds: creds, startAt: startAt, maxResults: pageSize)
             allIssues.append(contentsOf: issues)
             startAt += issues.count
-            if startAt >= total || issues.isEmpty { break }
+            if isLast || issues.isEmpty { break }
         }
 
         return allIssues
@@ -69,7 +70,7 @@ struct JiraClient {
         creds: JiraCredentials,
         startAt: Int,
         maxResults: Int
-    ) async throws -> (issues: [JiraIssue], total: Int) {
+    ) async throws -> (issues: [JiraIssue], isLast: Bool) {
         let base = creds.normalizedBaseURL
         guard var components = URLComponents(string: base + "/rest/api/3/search/jql") else {
             throw JiraError.invalidBaseURL(base)
@@ -88,12 +89,12 @@ struct JiraClient {
         request.setValue(creds.authHeader, forHTTPHeaderField: "Authorization")
         request.setValue("application/json", forHTTPHeaderField: "Accept")
 
-        print("📡 Pulse: requesting \(finalURL.absoluteString)")
+        debugLog("📡 Pulse: requesting \(finalURL.absoluteString)")
         let (data, response) = try await URLSession.shared.data(for: request)
         let statusCode = (response as? HTTPURLResponse)?.statusCode ?? -1
-        print("📡 Pulse: Jira responded HTTP \(statusCode), \(data.count) bytes")
+        debugLog("📡 Pulse: Jira responded HTTP \(statusCode), \(data.count) bytes")
         if let bodyPreview = String(data: data.prefix(500), encoding: .utf8) {
-            print("📡 Pulse: body preview — \(bodyPreview)")
+            debugLog("📡 Pulse: body preview — \(bodyPreview)")
         }
         guard (200..<300).contains(statusCode) else {
             throw JiraError.badResponse(statusCode)
@@ -111,7 +112,7 @@ struct JiraClient {
                 priority: raw.fields.priority?.name
             )
         }
-        return (issues, decoded.total)
+        return (issues, decoded.isLast ?? true)
     }
 }
 
@@ -119,8 +120,8 @@ struct JiraClient {
 // the cleaner JiraIssue above so nothing downstream depends on Jira's API
 // shape directly.
 private struct SearchResponse: Decodable {
-    let total: Int
     let issues: [RawIssue]
+    let isLast: Bool?
 }
 
 private struct RawIssue: Decodable {

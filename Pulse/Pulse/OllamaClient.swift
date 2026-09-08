@@ -84,17 +84,17 @@ struct OllamaClient {
             )
         )
 
-        print("📡 Pulse: requesting Ollama /api/chat with \(issues.count) issue(s)")
+        debugLog("📡 Pulse: requesting Ollama /api/chat with \(issues.count) issue(s)")
         let data: Data
         do {
             (data, _) = try await URLSession.shared.data(for: request)
         } catch {
-            print("📡 Pulse: Ollama request failed — \(error)")
+            debugLog("📡 Pulse: Ollama request failed — \(error)")
             throw OllamaError.serverUnreachable
         }
-        print("📡 Pulse: Ollama responded, \(data.count) bytes")
+        debugLog("📡 Pulse: Ollama responded, \(data.count) bytes")
         if let bodyPreview = String(data: data.prefix(500), encoding: .utf8) {
-            print("📡 Pulse: body preview — \(bodyPreview)")
+            debugLog("📡 Pulse: body preview — \(bodyPreview)")
         }
 
         let decoded = try JSONDecoder().decode(ChatResponse.self, from: data)
