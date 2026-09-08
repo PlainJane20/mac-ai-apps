@@ -28,6 +28,14 @@ struct OpenAppCommand {
         "youtube": "https://youtube.com",
     ]
 
+    /// Colloquial app names that don't match their actual bundle name —
+    /// confirmed by testing directly: `open -a "Chrome"` fails (exit 1)
+    /// because the real app is named "Google Chrome.app", and `open -a`
+    /// doesn't fuzzy-match that on its own.
+    private static let appNameAliases: [String: String] = [
+        "chrome": "Google Chrome",
+    ]
+
     static func run(argument: String?) -> CommandResult {
         guard let appName = argument, !appName.isEmpty else {
             return CommandResult(spokenText: "Didn't catch which app to open.", isQuery: true)
@@ -40,16 +48,17 @@ struct OpenAppCommand {
             return CommandResult(spokenText: "Opening \(appName) in your browser.", isQuery: false)
         }
 
+        let resolvedName = appNameAliases[normalized] ?? appName
         let process = Process()
         process.executableURL = URL(fileURLWithPath: "/usr/bin/open")
-        process.arguments = ["-a", appName]
+        process.arguments = ["-a", resolvedName]
 
         do {
             try process.run()
             process.waitUntilExit()
-            debugLog("🖥️ OpenAppCommand: open -a \"\(appName)\" exited \(process.terminationStatus)")
+            debugLog("🖥️ OpenAppCommand: open -a \"\(resolvedName)\" exited \(process.terminationStatus)")
             if process.terminationStatus == 0 {
-                return CommandResult(spokenText: "Opening \(appName).", isQuery: false)
+                return CommandResult(spokenText: "Opening \(resolvedName).", isQuery: false)
             } else {
                 return CommandResult(spokenText: "Couldn't find an app called \(appName).", isQuery: true)
             }
