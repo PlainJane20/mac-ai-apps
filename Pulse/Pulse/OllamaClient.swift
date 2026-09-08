@@ -59,7 +59,17 @@ struct OllamaClient {
     static func summarize(_ issues: [JiraIssue], model: String = defaultModel) async throws -> String {
         let url = URL(string: "http://localhost:11434/api/chat")!
 
-        let listing = issues.map { issue -> String in
+        // A small local model summarizing a very long list tends to get
+        // overwhelmed and fall back to a generic response instead of
+        // actually reading it (confirmed while testing against a
+        // deliberately broadened query that returned 97 tickets — real
+        // day-to-day active-sprint counts are nowhere near this, but capping
+        // defensively costs nothing).
+        let maxTicketsForSummary = 30
+        let truncated = issues.count > maxTicketsForSummary
+        let ticketsToList = truncated ? Array(issues.prefix(maxTicketsForSummary)) : issues
+
+        let listing = ticketsToList.map { issue -> String in
             var line = "\(issue.key) [\(issue.projectKey)] \(issue.issueType) — \(issue.status)"
             if let priority = issue.priority {
                 line += " — priority: \(priority)"
@@ -68,9 +78,13 @@ struct OllamaClient {
             return line
         }.joined(separator: "\n")
 
+        let truncationNote = truncated
+            ? "\n\n(showing the first \(maxTicketsForSummary) of \(issues.count) — mention the total count is higher)"
+            : ""
+
         let userContent = issues.isEmpty
             ? "No tickets are currently assigned in an active sprint."
-            : "You have \(issues.count) ticket(s) assigned in active sprints:\n\n\(listing)"
+            : "You have \(issues.count) ticket(s) assigned in active sprints:\n\n\(listing)\(truncationNote)"
 
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
