@@ -6,6 +6,7 @@
 //
 
 import AppKit
+import AVFoundation
 import UserNotifications
 
 @MainActor
@@ -37,22 +38,27 @@ final class MicDropController: ObservableObject {
         // in runDictation() — a voice query like "what's my battery at"
         // never touches the clipboard, so it shouldn't be blocked by a
         // permission it doesn't need. Checked later, only on that path.
-        DictationRecorder.requestPermissions { [weak self] granted in
+        //
+        // WhisperKit only needs microphone access — no Speech Recognition
+        // permission at all, since it never calls Apple's Speech APIs.
+        AVCaptureDevice.requestAccess(for: .audio) { [weak self] granted in
             guard let self else { return }
-            debugLog("🎙️ permissions granted: \(granted)")
+            debugLog("🎙️ microphone permission granted: \(granted)")
             guard granted else {
                 self.lastError = DictationError.permissionDenied.localizedDescription
                 return
             }
-            do {
-                try DictationRecorder.shared.start()
-                self.isRecording = true
-                self.lastError = nil
-                NSSound(named: "Tink")?.play()
-                debugLog("🎙️ recording started successfully")
-            } catch {
-                self.lastError = error.localizedDescription
-                debugLog("🎙️ recording start FAILED: \(error)")
+            Task { @MainActor in
+                do {
+                    try await WhisperKitRecorder.shared.start()
+                    self.isRecording = true
+                    self.lastError = nil
+                    NSSound(named: "Tink")?.play()
+                    debugLog("🎙️ recording started successfully")
+                } catch {
+                    self.lastError = error.localizedDescription
+                    debugLog("🎙️ recording start FAILED: \(error)")
+                }
             }
         }
     }
@@ -61,7 +67,7 @@ final class MicDropController: ObservableObject {
         isRecording = false
         NSSound(named: "Pop")?.play()
         debugLog("🎙️ stopAndProcess() called")
-        let transcript = await DictationRecorder.shared.stop()
+        let transcript = await WhisperKitRecorder.shared.stop()
         debugLog("🎙️ transcript: \"\(transcript)\"")
 
         guard !transcript.isEmpty else {
