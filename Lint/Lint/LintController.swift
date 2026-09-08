@@ -38,6 +38,11 @@ final class LintController: ObservableObject {
             NSPasteboard.general.clearContents()
             NSPasteboard.general.setString(cleaned, forType: .string)
             lastResult = cleaned
+            // Playing this directly (instead of relying on the notification's
+            // sound field) sidesteps a known quirk where macOS silently drops
+            // sound for notifications a background/accessory app posts about
+            // itself. This always plays.
+            NSSound(named: "Glass")?.play()
             notify(title: "Lint ✨", body: "Clipboard cleaned — paste away.")
         } catch {
             print("🪄 Lint: FAILED — \(error)")
@@ -54,7 +59,7 @@ final class LintController: ObservableObject {
         let content = UNMutableNotificationContent()
         content.title = title
         content.body = body
-        content.sound = nil
+        content.sound = .default
         let request = UNNotificationRequest(
             identifier: UUID().uuidString,
             content: content,

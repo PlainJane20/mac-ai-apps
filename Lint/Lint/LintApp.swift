@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AppKit
+import UserNotifications
 
 @main
 struct LintApp: App {
@@ -30,6 +31,11 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
         // Menu-bar-only app — no Dock icon, no app switcher entry.
         NSApp.setActivationPolicy(.accessory)
 
+        // Without a delegate, macOS silently drops the sound (and sometimes the
+        // banner) for notifications posted by the app that's currently frontmost —
+        // which is exactly our case, since you click Lint's own popover to trigger
+        // this. Explicitly confirming .banner + .sound here overrides that.
+        UNUserNotificationCenter.current().delegate = self
         LintController.shared.requestNotificationPermission()
 
         HotKeyManager.shared.onHotKey = {
@@ -40,5 +46,15 @@ final class AppDelegate: NSObject, NSApplicationDelegate {
 
     func applicationWillTerminate(_ notification: Notification) {
         HotKeyManager.shared.unregister()
+    }
+}
+
+extension AppDelegate: UNUserNotificationCenterDelegate {
+    func userNotificationCenter(
+        _ center: UNUserNotificationCenter,
+        willPresent notification: UNNotification,
+        withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void
+    ) {
+        completionHandler([.banner, .sound, .list])
     }
 }
