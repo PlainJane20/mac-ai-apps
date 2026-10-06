@@ -10,7 +10,7 @@
 
 Copy rough text. Press a hotkey. Paste it clean. Nothing ever leaves your Mac.
 
-[![Swift 6](https://img.shields.io/badge/swift-6.0-F05138?logo=swift&logoColor=white)](https://swift.org/)
+[![Swift 5](https://img.shields.io/badge/swift-5-F05138?logo=swift&logoColor=white)](https://swift.org/)
 [![SwiftUI](https://img.shields.io/badge/UI-SwiftUI-0A84FF)]()
 [![Ollama Local LLM](https://img.shields.io/badge/LLM-Ollama_%28local%29-8b5cf6)](https://ollama.com)
 [![Platform macOS](https://img.shields.io/badge/platform-macOS-000000?logo=apple&logoColor=white)]()
@@ -22,9 +22,9 @@ Copy rough text. Press a hotkey. Paste it clean. Nothing ever leaves your Mac.
 
 <div align="center">
 
-| Global hotkey | Local-only | Standalone | Runs at login |
+| Global hotkey | Local-only | Standalone | Login Item |
 |:---:|:---:|:---:|:---:|
-| `⌘⇧V`, OS-level (Carbon Hot Key Manager) | Ollama on-device — no cloud API call, ever | No Xcode/debugger dependency | Registered as a macOS Login Item |
+| `⌘⇧V`, OS-level (Carbon Hot Key Manager) | Ollama on-device — no cloud API call, ever | Release build runs without Xcode | Can be added as a macOS Login Item by hand |
 
 </div>
 
@@ -40,10 +40,10 @@ I chose a **local** model over a cloud API on purpose: this app touches
 whatever happens to be on my clipboard at any given moment, and there's no
 reason that should ever leave the machine.
 
-> **Related work in this portfolio:** first in a four-app series exploring
-> native macOS development — the menu bar + local-LLM scaffolding built here
-> (hotkey handling, Ollama client, notification delegate) is reused directly
-> by the next app, a Jira sprint-status menu bar brief.
+> **Related work in this repo:** first in a three-app series exploring
+> native macOS development. The menu bar + local-LLM scaffolding built here
+> (hotkey handling, Ollama client, notification delegate) was reused by
+> [Pulse](../Pulse) and [MicDrop](../MicDrop).
 
 ## At a glance
 
@@ -51,7 +51,7 @@ reason that should ever leave the machine.
 |---|---|
 | **Problem** | Rough, filler-word-heavy notes and dictated text need cleanup before they go somewhere permanent (Slack, email, tickets) |
 | **Approach** | Global OS hotkey captures clipboard text, sends it to a local Ollama model with a chat-role prompt, writes the cleaned result back |
-| **Proof** | Verified against both realistic long-form input and adversarial short/ambiguous input (see bugs below) |
+| **Proof** | Tried by hand against long-form input and short/ambiguous input (see bugs below); no automated tests |
 | **Output** | Cleaned clipboard text, in place, plus a visual + audible confirmation |
 
 ## Competencies demonstrated
@@ -63,7 +63,7 @@ reason that should ever leave the machine.
 | Prompt engineering | Diagnosed and fixed a small model blending instructions into its own output; verified fixes against the raw API with `curl` before touching app code |
 | Systems debugging | Isolated a silent failure by adding stage-by-stage status logging (hotkey registration → event delivery → network call) rather than guessing |
 | macOS platform depth | App Sandbox network entitlements, the one-time notification permission model, and a notification-sound delegate quirk |
-| Shipping discipline | Debug → Release build, standalone launch outside Xcode, registered as a Login Item |
+| Shipping discipline | Debug → Release build, standalone launch outside Xcode |
 
 ## Real example
 

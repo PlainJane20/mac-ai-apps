@@ -23,9 +23,9 @@ Your tickets, any active sprint, any project — summarized, flagged, and sorted
 
 <div align="center">
 
-| Any Jira instance | Local-only | Deterministic-first | Runs at login |
+| Any Jira instance | Local-only | Deterministic-first | Daily digest |
 |:---:|:---:|:---:|:---:|
-| `currentUser()` + `openSprints()` — no board ID, no company baked in | Ollama on-device — real work data, never a cloud call | Counts, staleness, sorting computed in Swift, not asked of the LLM | Standalone + daily 9am digest |
+| `currentUser()` + `openSprints()` — no board ID, no instance-specific values baked in | Ollama on-device — ticket data is never sent to a cloud API | Counts, staleness, sorting computed in Swift, not asked of the LLM | Standalone + daily 9am digest notification |
 
 </div>
 
@@ -35,17 +35,16 @@ Second in a series of native macOS apps built to learn the local-AI
 development process by solving real problems on my own machine (the first,
 [Lint](../Lint), is a clipboard cleaner). I wanted a fast daily read on what's
 actually assigned to me across active sprints, without opening Jira's web UI
-every morning — and since this touches real work-ticket data, it had to stay
-entirely local, no exceptions.
+every morning — and since it touches ticket data, it is built to stay
+entirely local.
 
-**A hard rule enforced throughout:** the tool itself has zero company-specific
-logic — one generic JQL query, no hardcoded board or project. Real ticket data,
-screenshots, and API responses never get committed, even though this repo is
-public-eventually; every example below is fabricated.
+**A hard rule enforced throughout:** the tool itself has no instance-specific
+logic — one generic JQL query, no hardcoded board or project. No real ticket data,
+screenshots, or API responses are committed; every example below is fabricated.
 
 > **Related work in this portfolio:** reuses the menu-bar + Ollama-client
 > pattern proven out in [Lint](../Lint) — same `MenuBarExtra` scaffold, same
-> notification-sound delegate fix, same "local LLM only" stance on real data.
+> notification-sound delegate fix, same local-LLM-only stance.
 
 ## What it does
 
@@ -70,7 +69,7 @@ public-eventually; every example below is fabricated.
 |---|---|
 | **Problem** | Checking Jira's web UI every morning for what's actually on your plate — and what's quietly stalling — is slow and easy to skip |
 | **Approach** | One JQL query pulls tickets from any project; deterministic Swift computes counts/staleness/sorting; a local model adds a short narrative on top, but only when it's actually reliable |
-| **Proof** | Verified against a real Jira Cloud instance across a 20+ ticket real workload, not just the empty-sprint edge case |
+| **Proof** | Exercised by hand against a Jira Cloud instance (see bugs below); no automated tests |
 | **Output** | Status counts, flagged tickets, a short brief, and a one-click standup export, all refreshed on open, on demand, or daily at 9am |
 
 ## Competencies demonstrated
@@ -78,11 +77,11 @@ public-eventually; every example below is fabricated.
 | Competency | Observable evidence |
 |---|---|
 | API integration | Jira REST v3 search, paginated correctly against the API's actual (not assumed) response shape; dynamic custom-field discovery for sprint data |
-| Local LLM integration, with real skepticism | Ollama `/api/chat` summarization whose output is validated against ground truth (correct count present, no redundant ticket-key dump) before ever being shown — confirmed necessary after 4 distinct failure modes across 2 models on real data |
+| Local LLM integration, with real skepticism | Ollama `/api/chat` summarization whose output is validated against ground truth (correct count present, no redundant ticket-key dump) before ever being shown — added after repeated failure modes seen with local models during manual use |
 | Deterministic-first design | Status counts, staleness, overdue, sorting, and assignee breakdown are all plain Swift computation — the LLM's job is deliberately minimized to what it's actually reliable at |
 | Debugging under ambiguity | Diagnosed a silent decode failure via request/response logging; diagnosed an AI reliability failure via a synthetic side-by-side model comparison before touching app code |
 | macOS platform depth | Window-state restoration, Keychain ACL/code-signing behavior, and SwiftUI layout sizing — three distinct root causes found and fixed |
-| Security-conscious design | Generic-by-default query (no hardcoded company data), credentials never committed, explicit rule separating "the tool" from "my usage of it" |
+| Security-conscious design | Generic-by-default query (no hardcoded instance data), credentials never committed, no real ticket data committed |
 
 ## Real example
 
@@ -136,14 +135,13 @@ public-eventually; every example below is fabricated.
    a local file outside the Keychain entirely (still never committed to git),
    eliminating the friction at its source.
 
-5. **An LLM that failed the same task four different ways on real data,
-   despite passing synthetic tests.** Once real usage crossed ~20 tickets,
+5. **An LLM that failed the same task four different ways at larger
+   ticket counts, despite passing small tests.** Once the list crossed ~20 tickets,
    the model hallucinated a claim on every single item, then on a later run
    flatly denied any tickets existed despite receiving them in the prompt,
    then produced a bare list with no synthesis, then — even when otherwise
    coherent — redundantly enumerated ticket keys the UI already showed
-   elsewhere. A synthetic side-by-side test (fabricated tickets, not real
-   ones) confirmed a larger local model handled the same scale correctly,
+   elsewhere. A side-by-side test with fabricated tickets confirmed a larger local model handled the same scale correctly,
    but the deeper fix was architectural, not just a bigger model: validate
    the LLM's output against ground truth (does it mention the actual count?
    does it duplicate ticket keys we can check for directly?) and fall back
