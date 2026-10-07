@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 360" role="img" aria-labelledby="t d" font-family="Inter, -apple-system, Segoe UI, Helvetica, Arial, sans-serif">
+<title id="t">How the three apps work</title>
+<desc id="d">Three separate macOS menu bar apps. Lint cleans clipboard text with Ollama. Pulse computes Jira sprint facts in Swift and asks Ollama for a short narrative that is validated before display. MicDrop transcribes speech with WhisperKit, classifies intent with Ollama, then pastes dictation or runs a command, defaulting to dictation when unsure.</desc>
+<defs><marker id="arr" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="8" markerHeight="8" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#0f766e"/></marker><filter id="sh" x="-10%" y="-10%" width="120%" height="125%"><feDropShadow dx="0" dy="3" stdDeviation="4" flood-color="#0f172a" flood-opacity=".12"/></filter></defs>
+<rect width="1200" height="360" rx="20" fill="#f8fafc"/>
+<text x="600" y="48" text-anchor="middle" font-size="26" font-weight="700" fill="#0f172a">How the three apps work</text>
+<text x="600" y="76" text-anchor="middle" font-size="15" fill="#475569">Three separate Xcode projects, one shared pattern: deterministic Swift first, a local model second</text>
+<g filter="url(#sh)"><rect x="40.0" y="110" width="200" height="150" rx="14" fill="#ffffff" stroke="#14b8a6" stroke-width="2"/></g>
+<text x="140.0" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#475569" letter-spacing="0.6">1  TRIGGER</text>
+<text x="140.0" y="172" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Hotkey, click,</text>
+<text x="140.0" y="200" text-anchor="middle" font-size="14" fill="#334155">or daily timer</text>
+<text x="140.0" y="221" text-anchor="middle" font-size="14" fill="#334155">(per app)</text>
+<path d="M244 185H266" stroke="#0f766e" stroke-width="2.5" fill="none" marker-end="url(#arr)"/>
+<g filter="url(#sh)"><rect x="270.0" y="110" width="200" height="150" rx="14" fill="#ffffff" stroke="#14b8a6" stroke-width="2"/></g>
+<text x="370.0" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#475569" letter-spacing="0.6">2  DETERMINISTIC SWIFT</text>
+<text x="370.0" y="172" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Computed in code</text>
+<text x="370.0" y="200" text-anchor="middle" font-size="14" fill="#334155">counts, staleness, parsing,</text>
+<text x="370.0" y="221" text-anchor="middle" font-size="14" fill="#334155">routing: not asked</text>
+<text x="370.0" y="242" text-anchor="middle" font-size="14" fill="#334155">of the model</text>
+<path d="M474 185H496" stroke="#0f766e" stroke-width="2.5" fill="none" marker-end="url(#arr)"/>
+<g filter="url(#sh)"><rect x="500.0" y="110" width="200" height="150" rx="14" fill="#ffffff" stroke="#14b8a6" stroke-width="2"/></g>
+<text x="600.0" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#475569" letter-spacing="0.6">3  OLLAMA, LOCAL</text>
+<text x="600.0" y="172" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">POST /api/chat</text>
+<text x="600.0" y="200" text-anchor="middle" font-size="14" fill="#334155">on localhost:11434</text>
+<text x="600.0" y="221" text-anchor="middle" font-size="14" fill="#334155">system and user</text>
+<text x="600.0" y="242" text-anchor="middle" font-size="14" fill="#334155">messages kept apart</text>
+<path d="M704 185H726" stroke="#0f766e" stroke-width="2.5" fill="none" marker-end="url(#arr)"/>
+<g filter="url(#sh)"><rect x="730.0" y="110" width="200" height="150" rx="14" fill="#ffffff" stroke="#14b8a6" stroke-width="2"/></g>
+<text x="830.0" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#475569" letter-spacing="0.6">4  VALIDATE OR FALL BACK</text>
+<text x="830.0" y="172" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Do not trust it</text>
+<text x="830.0" y="200" text-anchor="middle" font-size="14" fill="#334155">Pulse: deterministic sentence</text>
+<text x="830.0" y="221" text-anchor="middle" font-size="14" fill="#334155">MicDrop: plain dictation</text>
+<text x="830.0" y="242" text-anchor="middle" font-size="14" fill="#334155">when unsure</text>
+<path d="M934 185H956" stroke="#0f766e" stroke-width="2.5" fill="none" marker-end="url(#arr)"/>
+<g filter="url(#sh)"><rect x="960.0" y="110" width="200" height="150" rx="14" fill="#ffffff" stroke="#14b8a6" stroke-width="2"/></g>
+<text x="1060.0" y="142" text-anchor="middle" font-size="12" font-weight="700" fill="#475569" letter-spacing="0.6">5  OUTPUT</text>
+<text x="1060.0" y="172" text-anchor="middle" font-size="20" font-weight="700" fill="#0f172a">Where it lands</text>
+<text x="1060.0" y="200" text-anchor="middle" font-size="14" fill="#334155">clipboard, popover,</text>
+<text x="1060.0" y="221" text-anchor="middle" font-size="14" fill="#334155">notification, paste,</text>
+<text x="1060.0" y="242" text-anchor="middle" font-size="14" fill="#334155">or speech</text>
+<text x="600" y="312" text-anchor="middle" font-size="16" fill="#334155">Lint: Cmd+Shift+V cleans the clipboard.  Pulse: Jira sprint brief.  MicDrop: Cmd+Option+D, dictate or command.</text>
+<text x="600" y="338" text-anchor="middle" font-size="16" fill="#334155">No shared package; there are no automated tests and no CI.</text>
+</svg>

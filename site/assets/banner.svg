@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 320" role="img" aria-labelledby="title description">
+  <title id="title">mac-ai-apps</title>
+  <desc id="description">Native macOS menu bar apps powered by local LLMs: Lint, Pulse and MicDrop.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#0f1a2e"/>
+      <stop offset="0.56" stop-color="#1f3b6b"/>
+      <stop offset="1" stop-color="#14b8a6" stop-opacity=".72"/>
+    </linearGradient>
+    <radialGradient id="glow">
+      <stop offset="0" stop-color="#5eead4" stop-opacity=".28"/>
+      <stop offset="1" stop-color="#5eead4" stop-opacity="0"/>
+    </radialGradient>
+  </defs>
+  <rect width="1200" height="320" rx="24" fill="url(#bg)"/>
+  <circle cx="1035" cy="55" r="230" fill="url(#glow)"/>
+  <text x="75" y="120" fill="#ffffff" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="56" font-weight="750" letter-spacing="-1">mac-ai-apps</text>
+  <text x="77" y="162" fill="#5eead4" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="15" font-weight="700" letter-spacing="2.5">NATIVE MACOS MENU BAR APPS, LOCAL LLMS</text>
+  <text x="75" y="225" fill="#e3ecf7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">Lint, Pulse and MicDrop: three small apps built to learn native macOS</text>
+  <text x="75" y="258" fill="#e3ecf7" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="21">development with Ollama running on the same machine.</text>
+  <g transform="translate(775 168)" font-family="Inter,Segoe UI,Arial,sans-serif" font-size="12" font-weight="700">
+    <g transform="translate(0 0)"><rect width="110" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="55" y="26" text-anchor="middle" fill="#f0f6fc">Lint</text></g>
+    <g transform="translate(120 0)"><rect width="110" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="55" y="26" text-anchor="middle" fill="#f0f6fc">Pulse</text></g>
+    <g transform="translate(240 0)"><rect width="110" height="42" rx="21" fill="#ffffff" fill-opacity=".1" stroke="#ffffff" stroke-opacity=".2"/><text x="55" y="26" text-anchor="middle" fill="#f0f6fc">MicDrop</text></g>
+  </g>
+</svg>
